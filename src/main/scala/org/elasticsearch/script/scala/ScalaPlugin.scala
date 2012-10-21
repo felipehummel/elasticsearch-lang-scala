@@ -9,5 +9,5 @@ class ScalaPlugin extends AbstractPlugin {
   override def description() = "Scala plugin allowing to add scala scripting";
 
   def onModule(module: ScriptModule) =
-    module.addScriptEngine(classOf[org.elasticsearch.script.ScalaScriptEngineService]);
+    module.addScriptEngine(classOf[org.elasticsearch.script.ScalaNativeScriptEngineService]);
 }
