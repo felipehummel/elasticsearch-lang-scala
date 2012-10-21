@@ -33,8 +33,19 @@ import java.util.Map
 //   override def unwrap(value: AnyRef): AnyRef = value
 // }
 
+object ScalaScriptImplicitHelpers {
+  class RichDocFieldData(docFieldData: DocFieldData[_]) {
+    def double = docFieldData.asInstanceOf[NumericDocFieldData[_]].getDoubleValue
+    def float  = docFieldData.asInstanceOf[NumericDocFieldData[_]].getFloatValue
+    def long   = docFieldData.asInstanceOf[NumericDocFieldData[_]].getLongValue
+  }
+  implicit def docDataToRich(docFieldData: DocFieldData[_]): RichDocFieldData =
+    new RichDocFieldData(docFieldData)
+}
 
 class ExtendedDocLookup(val docLookup: DocLookup) {
+  import ScalaScriptImplicitHelpers._
+
   def apply(str: String): DocFieldData[_] = docLookup.get(str).asInstanceOf[DocFieldData[_]]
   def numeric(str: String): NumericDocFieldData[_] = {
     val numberData: NumericDocFieldData[_] = docLookup.numeric(str)
@@ -55,6 +66,8 @@ abstract class ScalaSearchScript(params: Map[String, AnyRef]) extends AbstractFl
 
   // helpers
   def _doc = new ExtendedDocLookup(doc())
+  def time = System.currentTimeMillis
+
 
   // aliases
   def _score = score
@@ -86,6 +99,8 @@ class ScalaNativeScriptEngineService @Inject() (settings: Settings) extends Nati
           override def newScript(params: Map[String, AnyRef]): ExecutableScript = {
             new ScalaSearchScript(params) {
               override def runAsFloat {
+                import math._
+                import ScalaScriptImplicitHelpers._
                 val _score = score
                 val _doc = new ExtendedDocLookup(doc)
                 """+code+"""
